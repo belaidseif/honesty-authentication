@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserSignupDto {
+public class SignupReqDto {
 
     @Email(message = "email format invalid")
     @NotNull

@@ -50,6 +50,9 @@ public class UserEntity {
     private boolean isCredentialsNonExpired;
     private boolean isEnabled;
 
+    @Column(columnDefinition = "boolean default false")
+    private boolean isVerified;
+
     @Enumerated(EnumType.STRING)
     private Provider provider;
 
@@ -65,6 +68,7 @@ public class UserEntity {
         isAccountNonLocked = true;
         isCredentialsNonExpired = true;
         isEnabled = true;
+        isVerified = true;
         authorities = authorityService.getAuthorities(MEMBER);
         userRole = MEMBER;
         createdAt = ZonedDateTime.now();

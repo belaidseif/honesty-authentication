@@ -1,31 +1,33 @@
 package com.honesty.authentication.security;
 
 import com.honesty.authentication.jwt.JwtConfig;
+import com.honesty.authentication.jwt.JwtTokenVerifier;
 import com.honesty.authentication.jwt.JwtUsernameAndPasswordAuthenticationFilter;
 import com.honesty.authentication.model.google.CustomOAuth2User;
 import com.honesty.authentication.model.google.CustomOAuth2UserService;
 import com.honesty.authentication.model.user_entity.UserEntity;
 import com.honesty.authentication.model.user_entity.UserEntityService;
+import com.honesty.authentication.user.ApplicationUserRole;
 import com.honesty.authentication.user.ApplicationUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+
+
 
 @Configuration
 @EnableWebSecurity
@@ -54,30 +56,32 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig))
+                .addFilterAfter(new JwtTokenVerifier(jwtConfig), JwtUsernameAndPasswordAuthenticationFilter.class)
+
                 .authorizeRequests()
-                .antMatchers("/auth-api/signup").permitAll()
+                .antMatchers("/auth-api/registration/**").permitAll()
                 .antMatchers("/auth-api/facebook/**").permitAll()
                 .antMatchers("/oauth/**").permitAll()
+                .antMatchers("/open-api-v3/auth-api").permitAll()
                 .anyRequest().authenticated()
                 .and()
+                .exceptionHandling(o -> o.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+
                 .oauth2Login()
                 .userInfoEndpoint()
                 .userService(customOAuth2UserService)
                 .and()
-                .successHandler(new AuthenticationSuccessHandler() {
-                    @Override
-                    public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
-                        CustomOAuth2User oauthUser = (CustomOAuth2User) authentication.getPrincipal();
-                        UserEntity userEntity = userEntityService.saveUserWithGoogle(oauthUser);
+                .successHandler((httpServletRequest, httpServletResponse, authentication) -> {
+                    CustomOAuth2User oauthUser = (CustomOAuth2User) authentication.getPrincipal();
+                    UserEntity userEntity = userEntityService.saveUserWithGoogle(oauthUser);
 
-                        UserDetails userDetails = userService.getUserDetailsFromUserEntity(userEntity);
-                        String accessToken = jwtConfig.getAccessToken(userDetails);
+                    UserDetails userDetails = userService.getUserDetailsFromUserEntity(userEntity);
+                    String accessToken = jwtConfig.getAccessToken(userDetails);
 
-                        String refreshToken = jwtConfig.getRefreshToken(userDetails);
+                    String refreshToken = jwtConfig.getRefreshToken(userDetails);
 
-                        httpServletResponse.addHeader("accessToken", jwtConfig.getTokenPrefix() + accessToken);
-                        httpServletResponse.addHeader("refreshToken", refreshToken);
-                    }
+                    httpServletResponse.addHeader("accessToken", jwtConfig.getTokenPrefix() + accessToken);
+                    httpServletResponse.addHeader("refreshToken", refreshToken);
                 });
     }
 

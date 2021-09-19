@@ -5,6 +5,8 @@ import com.honesty.authentication.model.facebook.FacebookService;
 import com.honesty.authentication.model.user_entity.UserEntity;
 import com.honesty.authentication.user.ApplicationUserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,11 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.crypto.SecretKey;
-
 
 @RestController
 @RequestMapping("auth-api/facebook")
+@Tag(name = "facebook api")
 public class FacebookController {
 
 
@@ -41,6 +42,7 @@ public class FacebookController {
     }
 
     @GetMapping()
+    @Operation(description = "400: code used")
     public ResponseEntity<String> generateFacebookAccessToken(@RequestParam("code") String code){
         try {
         UserEntity userEntity = facebookService.generateFacebookAccessToken(code);
@@ -57,9 +59,6 @@ public class FacebookController {
         }catch (HttpClientErrorException e){
             return ResponseEntity.badRequest().body("code used");
         }
-
-
-
     }
 
 }

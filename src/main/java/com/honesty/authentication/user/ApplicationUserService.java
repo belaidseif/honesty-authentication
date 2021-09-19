@@ -43,7 +43,6 @@ public class ApplicationUserService implements UserDetailsService {
                 .collect(Collectors.toSet());
         grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_"+userEntity.getUserRole().name()));
 
-        System.out.println("id" + userEntity.getId());
         UserDetails userDetails = new ApplicationUser(
                 userEntity.getId().toString(),
                 userEntity.getPassword(),
