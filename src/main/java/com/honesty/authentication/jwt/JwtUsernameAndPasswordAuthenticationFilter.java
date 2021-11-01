@@ -69,8 +69,8 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
                 .compact();
 
 
-        response.addHeader("accessToken", jwtConfig.getTokenPrefix() + accessToken);
-        response.addHeader("refreshToken", refreshToken);
+        response.addHeader("access-token", jwtConfig.getTokenPrefix() + accessToken);
+        response.addHeader("refresh-token", refreshToken);
     }
 
 }

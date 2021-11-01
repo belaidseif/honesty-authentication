@@ -1,19 +1,18 @@
 package com.honesty.authentication.jwt;
 
+import com.honesty.authentication.user.ApplicationUserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.lang.Strings;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +27,7 @@ import java.util.stream.Collectors;
 public class JwtTokenVerifier extends OncePerRequestFilter {
 
     private final JwtConfig jwtConfig;
+    private final ApplicationUserService applicationUserService;
 
     @Override
     protected void doFilterInternal(
@@ -44,26 +44,60 @@ public class JwtTokenVerifier extends OncePerRequestFilter {
 
 
             String token = authorizationHeader.replace(jwtConfig.getTokenPrefix(),"");
-            Jws<Claims> claimsJws =  Jwts.parser().setSigningKey(jwtConfig.getSecretKey()).parseClaimsJws(token);
-
-            Claims body = claimsJws.getBody();
-            String username = body.getSubject();
-            var authorities = (List<Map<String, String>>) body.get("authorities");
-
-            Set<SimpleGrantedAuthority> simpleGrantedAuthorities = authorities.stream()
-                    .map(m -> new SimpleGrantedAuthority(m.get("authority")))
-                    .collect(Collectors.toSet());
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    username,
-                    null,
-                    simpleGrantedAuthorities
-            );
-            request.setAttribute("username", username);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            verifyAccessToken(request, token);
 
         }catch (JwtException e){
-            System.err.println("token cannot be trusted");
+            String refreshToken = request.getHeader("refreshToken");
+            if(refreshToken == null){
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            String username = verifyRefreshToken(refreshToken);
+            if(username != null){
+                UserDetails userDetails = applicationUserService.getUserDetailsById(username);
+                String token = jwtConfig.getAccessToken(userDetails);
+                response.addHeader("access-token",token );
+                response.addHeader("refresh-token", jwtConfig.getRefreshToken(userDetails));
+
+                verifyAccessToken(request, token);
+            }else {
+                System.err.println("token cannot be trusted");
+            }
+
         }
         filterChain.doFilter(request, response);
+    }
+
+
+
+    public void verifyAccessToken(HttpServletRequest request, String token){
+        Jws<Claims> claimsJws =  Jwts.parser().setSigningKey(jwtConfig.getSecretKey()).parseClaimsJws(token);
+
+        Claims body = claimsJws.getBody();
+        String username = body.getSubject();
+        var authorities = (List<Map<String, String>>) body.get("authorities");
+        Set<SimpleGrantedAuthority> simpleGrantedAuthorities = authorities.stream()
+                .map(m -> new SimpleGrantedAuthority(m.get("authority")))
+                .collect(Collectors.toSet());
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                username,
+                null,
+                simpleGrantedAuthorities
+        );
+        request.setAttribute("username", username);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    public String verifyRefreshToken(String refreshToken) {
+        try {
+            Jws<Claims> claimsJws =  Jwts.parser().setSigningKey(jwtConfig.getSecretKey()).parseClaimsJws(refreshToken);
+            Claims body = claimsJws.getBody();
+            String username = body.getSubject();
+            return username;
+        }catch (JwtException e){
+            return null;
+        }
+
     }
 }

@@ -7,7 +7,6 @@ import com.honesty.authentication.model.google.CustomOAuth2User;
 import com.honesty.authentication.model.google.CustomOAuth2UserService;
 import com.honesty.authentication.model.user_entity.UserEntity;
 import com.honesty.authentication.model.user_entity.UserEntityService;
-import com.honesty.authentication.user.ApplicationUserRole;
 import com.honesty.authentication.user.ApplicationUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -39,8 +38,9 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtConfig jwtConfig;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final UserEntityService userEntityService;
+
     @Autowired
-    public ApplicationSecurityConfig(PasswordEncoder passwordEncoder, ApplicationUserService userService, JwtConfig jwtConfig, CustomOAuth2UserService customOAuth2UserService, UserEntityService userEntityService) {
+    public ApplicationSecurityConfig(PasswordEncoder passwordEncoder, ApplicationUserService userService, JwtConfig jwtConfig, CustomOAuth2UserService customOAuth2UserService, UserEntityService userEntityService, ApplicationUserService applicationUserService) {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.jwtConfig = jwtConfig;
@@ -56,7 +56,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig))
-                .addFilterAfter(new JwtTokenVerifier(jwtConfig), JwtUsernameAndPasswordAuthenticationFilter.class)
+                .addFilterAfter(new JwtTokenVerifier(jwtConfig, userService), JwtUsernameAndPasswordAuthenticationFilter.class)
 
                 .authorizeRequests()
                 .antMatchers("/auth-api/registration/**").permitAll()
@@ -80,8 +80,8 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 
                     String refreshToken = jwtConfig.getRefreshToken(userDetails);
 
-                    httpServletResponse.addHeader("accessToken", jwtConfig.getTokenPrefix() + accessToken);
-                    httpServletResponse.addHeader("refreshToken", refreshToken);
+                    httpServletResponse.addHeader("access-token", jwtConfig.getTokenPrefix() + accessToken);
+                    httpServletResponse.addHeader("refresh-token", refreshToken);
                 });
     }
 

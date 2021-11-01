@@ -24,6 +24,10 @@ public class ManagementController {
     private final ConfirmationTokenService confirmationTokenService;
     private final UserEntityService userEntityService;
 
+    @GetMapping("test")
+    public String getTest(){
+        return  "test authentication";
+    }
     @GetMapping()
     @Operation(description = "404: token not found\n406:token expired\n409:not same user")
     public ResponseEntity<String> verifyAccountWithEmailToken(@RequestParam("token") String token, HttpServletRequest request){

@@ -52,8 +52,8 @@ public class FacebookController {
             String refreshToken = jwtConfig.getRefreshToken(userDetails);
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add("accessToken",jwtConfig.getTokenPrefix() +  accessToken);
-            headers.add("refreshToken",refreshToken);
+            headers.add("access-token",jwtConfig.getTokenPrefix() +  accessToken);
+            headers.add("refresh-token",refreshToken);
 
             return ResponseEntity.ok().headers(headers).body("connected with facebook");
         }catch (HttpClientErrorException e){

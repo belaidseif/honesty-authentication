@@ -12,7 +12,7 @@
 	<artifactId>authentication</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>authentication</name>
-	<description>micro-service of authenication</description>
+	<description>micro-service of authentication</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>

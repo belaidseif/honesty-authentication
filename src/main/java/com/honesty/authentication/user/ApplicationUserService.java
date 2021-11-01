@@ -15,6 +15,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -53,5 +54,13 @@ public class ApplicationUserService implements UserDetailsService {
                 userEntity.isEnabled()
         );
         return userDetails;
+    }
+
+    public UserDetails getUserDetailsById(String id){
+        Optional<UserEntity> optionalUserEntity = userRepo.findById(UUID.fromString(id));
+        UserEntity userEntity = optionalUserEntity
+                .orElseThrow(()-> new UsernameNotFoundException("user not found with this address mail: " + id));
+
+        return getUserDetailsFromUserEntity(userEntity);
     }
 }
