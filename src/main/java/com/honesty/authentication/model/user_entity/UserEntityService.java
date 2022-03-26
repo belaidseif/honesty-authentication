@@ -53,6 +53,7 @@ public class UserEntityService {
         UserEntity user = new UserEntity();
         user.setUsername(signupReqDto.getEmail());
         user.setPassword(encoder.encode(signupReqDto.getPassword()));
+        user.setGender(signupReqDto.getGender());
         user.setBirthdate(signupReqDto.getBirthdate());
         user.createMember(authorityService);
         user.setProvider(LOCAL);
@@ -139,5 +140,12 @@ public class UserEntityService {
 
         userEntity.setPassword(encoder.encode(newPassword));
         userRepo.save(userEntity);
+    }
+
+    public UserEntity getUserInformations(UUID userUid) {
+        Optional<UserEntity> byId = userRepo.findById(userUid);
+        UserEntity userEntity = byId.orElseThrow(() -> new UserNotFound("user not found"));
+        return userEntity;
+
     }
 }

@@ -15,6 +15,7 @@ import com.honesty.authentication.user.ApplicationUserPermission;
 import com.honesty.authentication.user.ApplicationUserRole;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -63,7 +64,8 @@ class UserEntityServiceTest {
         SignupReqDto user = new SignupReqDto(
                 "mail@mail",
                 "123456",
-                LocalDate.of(2000,10,10)
+                LocalDate.of(2000,10,10),
+                Gender.FEMALE
         );
         given(userRepo.existsByUsername(anyString())).willReturn(false);
         Set<Authority> set = new HashSet<>();
@@ -83,6 +85,7 @@ class UserEntityServiceTest {
         assertThat(capturedUserEntity.isAccountNonLocked()).isTrue();
         assertThat(capturedUserEntity.isCredentialsNonExpired()).isTrue();
         assertThat(capturedUserEntity.isEnabled()).isTrue();
+        assertThat(capturedUserEntity.getGender()).isEqualTo(Gender.FEMALE);
         assertThat(capturedUserEntity.getProvider()).isEqualTo(Provider.LOCAL);
         assertThat(capturedUserEntity.isVerified()).isFalse();
 
@@ -104,7 +107,8 @@ class UserEntityServiceTest {
         SignupReqDto user = new SignupReqDto(
                 "mail@mail",
                 "123456",
-                LocalDate.of(2000,10,10)
+                LocalDate.of(2000,10,10),
+                Gender.MALE
         );
         given(userRepo.existsByUsername(anyString())).willReturn(true);
         assertThatThrownBy(() -> underTest.addUser(user))
@@ -256,5 +260,21 @@ class UserEntityServiceTest {
 
 
         verify(userRepo, never()).save(userEntity);
+    }
+
+
+    @Test
+    @DisplayName("should return user with id")
+    void test(){
+        UUID userUid = UUID.randomUUID();
+        UserEntity user = new UserEntity();
+        user.setId(userUid);
+        user.setUsername("username");
+        given(userRepo.findById(userUid)).willReturn(Optional.of(user));
+
+        UserEntity userInformations = underTest.getUserInformations(userUid);
+
+        assertThat(userInformations.getId()).isEqualTo(userUid);
+        assertThat(userInformations.getUsername()).isEqualTo("username");
     }
 }

@@ -1,5 +1,6 @@
 package com.honesty.authentication.controller.signup.dto;
 
+import com.honesty.authentication.model.user_entity.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,5 +26,9 @@ public class SignupReqDto {
     @PastOrPresent
     @NotNull
     private LocalDate birthdate;
+
+    @NotNull
+    private Gender gender;
+
 
 }

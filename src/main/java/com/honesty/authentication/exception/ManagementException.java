@@ -33,4 +33,11 @@ public class ManagementException {
             super(message);
         }
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public static class UserNotFound extends RuntimeException{
+        public UserNotFound(String message) {
+            super(message);
+        }
+    }
 }

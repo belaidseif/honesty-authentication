@@ -1,13 +1,17 @@
 package com.honesty.authentication.controller.signup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.honesty.authentication.controller.signup.dto.UserInfoResDto;
 import com.honesty.authentication.jwt.JwtConfig;
 import com.honesty.authentication.model.google.CustomOAuth2UserService;
 import com.honesty.authentication.model.token.ConfirmationTokenService;
+import com.honesty.authentication.model.user_entity.Gender;
+import com.honesty.authentication.model.user_entity.UserEntity;
 import com.honesty.authentication.model.user_entity.UserEntityService;
 import com.honesty.authentication.user.ApplicationUserService;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ManagementController.class)
@@ -135,4 +140,35 @@ class ManagementControllerTest {
 
         verify(userEntityService, never()).changePassword(any(),any(),any());
     }
+
+    @Test
+    @DisplayName("should call service to get informations")
+    void test() throws Exception{
+        UserEntity user = new UserEntity();
+        user.setId(UUID.fromString("aaa65168-26e8-4180-bfad-77b747c35524"));
+        user.setGender(Gender.FEMALE);
+        user.setVerified(true);
+        user.setUsername("username");
+
+
+        given(userEntityService.getUserInformations(UUID.fromString("5b765168-26e8-4180-bfad-77b747c35524")))
+                .willReturn(user);
+        RequestBuilder request = MockMvcRequestBuilders
+                .get("/auth-api/management/user")
+                .header("Authorization", bearerToken);
+
+        UserInfoResDto info = new  UserInfoResDto();
+        info.setId(UUID.fromString("aaa65168-26e8-4180-bfad-77b747c35524"));
+        info.setGender(Gender.FEMALE);
+        info.setVerified(true);
+        info.setUsername("username");
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(content().string(mapper.writeValueAsString(info)))
+                .andReturn();
+
+
+    }
+
 }

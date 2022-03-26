@@ -47,7 +47,7 @@ public class JwtTokenVerifier extends OncePerRequestFilter {
             verifyAccessToken(request, token);
 
         }catch (JwtException e){
-            String refreshToken = request.getHeader("refreshToken");
+            String refreshToken = request.getHeader("refresh-token");
             if(refreshToken == null){
                 filterChain.doFilter(request, response);
                 return;
@@ -59,6 +59,7 @@ public class JwtTokenVerifier extends OncePerRequestFilter {
                 String token = jwtConfig.getAccessToken(userDetails);
                 response.addHeader("access-token",token );
                 response.addHeader("refresh-token", jwtConfig.getRefreshToken(userDetails));
+                response.addHeader("Access-Control-Expose-Headers", "access-token, refresh-token");
 
                 verifyAccessToken(request, token);
             }else {

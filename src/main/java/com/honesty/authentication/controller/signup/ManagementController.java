@@ -1,7 +1,9 @@
 package com.honesty.authentication.controller.signup;
 
 import com.honesty.authentication.controller.signup.dto.ChangePasswordReqDto;
+import com.honesty.authentication.controller.signup.dto.UserInfoResDto;
 import com.honesty.authentication.model.token.ConfirmationTokenService;
+import com.honesty.authentication.model.user_entity.UserEntity;
 import com.honesty.authentication.model.user_entity.UserEntityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,10 +26,7 @@ public class ManagementController {
     private final ConfirmationTokenService confirmationTokenService;
     private final UserEntityService userEntityService;
 
-    @GetMapping("test")
-    public String getTest(){
-        return  "test authentication";
-    }
+
     @GetMapping()
     @Operation(description = "404: token not found\n406:token expired\n409:not same user")
     public ResponseEntity<String> verifyAccountWithEmailToken(@RequestParam("token") String token, HttpServletRequest request){
@@ -48,6 +47,13 @@ public class ManagementController {
         userEntityService.changePassword(changePassword.getAncientPassword(), changePassword.getNewPassword(),getUserUid(request) );
 
         return ResponseEntity.status(HttpStatus.CREATED).body("password has been changed");
+    }
+
+    @GetMapping("user")
+    public ResponseEntity<UserInfoResDto> getMyInformations(HttpServletRequest request){
+        UserEntity userInformations = userEntityService.getUserInformations(getUserUid(request));
+        UserInfoResDto userInfo = UserInfoResDto.getUserInfoFromUserEntity(userInformations);
+        return ResponseEntity.ok(userInfo);
     }
 
     private UUID getUserUid(HttpServletRequest request){

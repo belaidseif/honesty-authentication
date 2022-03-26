@@ -42,7 +42,7 @@ public class UserEntity {
     private String googleId;
 
     private LocalDate birthdate;
-
+    private Gender gender;
     @Enumerated(EnumType.STRING)
     private ApplicationUserRole userRole;
     private boolean isAccountNonExpired;

@@ -31,10 +31,7 @@ public class RegistrationController {
     ConfirmationTokenService confirmationTokenService;
 
 
-    @GetMapping
-    public String test(){
-        return "test signup";
-    }
+
 
 
 

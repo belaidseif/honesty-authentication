@@ -55,7 +55,8 @@ class RegistrationControllerTest {
         Map<String, String> map = Map.of(
                 "email", "mail@mail",
                 "password", "123456",
-                "birthdate", "2002-10-10"
+                "birthdate", "2002-10-10",
+                "gender","MALE"
         );
         SignupResDto responseDto = new SignupResDto(
                 "mail@mail",
